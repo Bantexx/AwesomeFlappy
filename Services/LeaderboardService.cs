@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.JSInterop;
 
-namespace FlappyMiniApp.Client.Services;
+namespace AwesomeFlappyClient.Services;
 
 public class LeaderboardService(IJSRuntime js) 
 {

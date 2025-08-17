@@ -1,4 +1,4 @@
-﻿namespace FlappyMiniApp.Client.Services;
+﻿namespace AwesomeFlappyClient.Services;
 
 public class GameSettingsService
 {

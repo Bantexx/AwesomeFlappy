@@ -1,6 +1,6 @@
-﻿using FlappyMiniApp.Client.Models;
+﻿using AwesomeFlappyClient.Models;
 
-namespace FlappyMiniApp.Client.Services;
+namespace AwesomeFlappyClient.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿namespace FlappyMiniApp.Client.Models;
+﻿namespace AwesomeFlappyClient.Models;
 
 public class PipeRender
 {

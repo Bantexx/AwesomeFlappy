@@ -1,4 +1,4 @@
-﻿namespace FlappyMiniApp.Client.Helpers;
+﻿namespace AwesomeFlappyClient.Helpers;
 
 public static class Unlocks
 {

@@ -1,7 +1,7 @@
+using AwesomeFlappyClient;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using FlappyMiniApp.Client;
-using FlappyMiniApp.Client.Services;
+using AwesomeFlappyClient.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

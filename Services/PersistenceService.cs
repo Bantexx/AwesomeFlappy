@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.JSInterop;
 
-namespace FlappyMiniApp.Client.Services;
+namespace AwesomeFlappyClient.Services;
 
 public class PersistenceService(IJSRuntime js)
 {
