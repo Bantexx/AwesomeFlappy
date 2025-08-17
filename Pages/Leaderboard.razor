@@ -1,0 +1,41 @@
+﻿@page "/leaderboard"
+@using FlappyMiniApp.Client.Services
+@inject LeaderboardService LBS
+@inject NavigationManager Nav
+
+<h3 style="text-align:center;color:#fff;">Leaderboard</h3>
+
+<div style="padding:16px;color:#fff;">
+    @if (scores == null)
+    {
+        <div>Loading...</div>
+    }
+    else if (scores.Count == 0)
+    {
+        <div>No scores yet. Play and submit!</div>
+    }
+    else
+    {
+        <ol>
+            @for (int i = 0; i < scores.Count; i++)
+            {
+                <li style="margin:6px 0;">@scores[i]</li>
+            }
+        </ol>
+    }
+
+    <div style="margin-top:12px;">
+        <button class="button" @onclick="()=>GoToGame()" style="pointer-events:auto;">Back</button>
+    </div>
+</div>
+
+@code {
+    private List<int>? scores;
+
+    protected override async Task OnInitializedAsync()
+    {
+        scores = await LBS.GetLocalTopAsync();
+    }
+    
+    private void GoToGame() => Nav.NavigateTo("/game"); 
+}

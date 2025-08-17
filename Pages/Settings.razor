@@ -1,0 +1,143 @@
+﻿@page "/settings"
+@using FlappyMiniApp.Client.Helpers
+@using FlappyMiniApp.Client.Services
+@inject GameSettingsService SettingsService
+@inject PersistenceService Persistence
+@inject NavigationManager Nav
+
+<h3 style="text-align:center;color:var(--text);margin-top:4px;">Settings</h3>
+
+<div class="app-container">
+  <div class="card">
+    <section style="margin-bottom:14px;">
+      <h4 style="margin:4px 0;">Character</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        @if (unlockedChars != null)
+        {
+            @for (int i = 0; i < Unlocks.Count; i++)
+            {
+                bool unlocked = unlockedChars.Contains(i);
+                bool selected = SettingsService.SelectedCharacterIndex == i;
+
+                int idx = i; // важное локальное копирование, устраняет проблему замыкания
+
+                <div style="text-align:center; width:96px;">
+                    <div style="position:relative;">
+                        <img src="@($"images/bird{(idx + 1)}.svg")" width="84" height="84"
+                             style="border-radius:10px; border:@(selected ? "3px solid var(--accent)" : "1px solid rgba(255,255,255,0.06)"); filter:@(unlocked ? "none" : "grayscale(1) brightness(0.7)");"/>
+                        @if (!unlocked)
+                        {
+                            <div style="position:absolute; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center;">
+                                <div style="background:rgba(0,0,0,0.45); color:var(--text); padding:6px 8px; border-radius:8px; font-size:12px;">Locked</div>
+                            </div>
+                        }
+                    </div>
+
+                    <div style="margin-top:6px; font-size:12px; color:rgba(230,248,238,0.9);">
+                        @if (unlocked)
+                        {
+                            @if (selected)
+                            {
+                                <div style="font-weight:600;">Selected</div>
+                            }
+                            else
+                            {
+                                <div>Available</div>
+                            }
+                        }
+                        else
+                        {
+                            <div>@Unlocks.Descriptions[idx]</div>
+                        }
+                    </div>
+
+                    <div style="margin-top:8px;">
+                        <button class="secondary-btn"
+                                @onclick="() => OnSelectCharacterAsync(idx)"
+                                disabled="@(!unlocked)"
+                                style="pointer-events:auto;">
+                            Select
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+      </div>
+    </section>
+
+    <section style="margin-bottom:12px;">
+      <h4 style="margin:4px 0;">Difficulty</h4>
+      <div style="display:flex;gap:8px;">
+        @foreach (GameEngineService.DifficultyLevel d in Enum.GetValues(typeof(GameEngineService.DifficultyLevel)))
+        {
+          bool cur = SettingsService.Difficulty == d;
+          GameEngineService.DifficultyLevel idx = d;
+          <button class="secondary-btn"
+                  @onclick="() => OnSelectDifficultyAsync(idx)"
+                  style="background:@(cur ? "linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))" : "transparent");">
+            @d.ToString()
+          </button>
+        }
+      </div>
+    </section>
+
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+      <button class="primary-btn" @onclick="SaveAndBack">Save</button>
+      <button class="secondary-btn" @onclick="Cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+@code {
+    private List<int> unlockedChars = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load unlocked and saved settings
+        unlockedChars = await Persistence.GetUnlockedCharsAsync();
+        var (selChar, diff) = await Persistence.LoadSettingsAsync();
+        // apply to in-memory settings service (ensures consistency)
+        SettingsService.SelectedCharacterIndex = selChar;
+        SettingsService.Difficulty = diff;
+    }
+
+    private async Task OnSelectCharacterAsync(int idx)
+    {
+        // Дополнительная защита: проверяем допустимость idx
+        if (idx < 0 || idx >= Unlocks.Count) return;
+
+        // Проверяем, действительно ли персонаж разблокирован
+        var unlocked = await Persistence.GetUnlockedCharsAsync();
+        if (!unlocked.Contains(idx)) return;
+
+        // Применяем выбор в runtime
+        SettingsService.SelectedCharacterIndex = idx;
+
+        // Сохраняем настройки сразу, чтобы Game увидел их при старте
+        await Persistence.SaveSettingsAsync(SettingsService.SelectedCharacterIndex, SettingsService.Difficulty);
+
+        StateHasChanged();
+    }
+
+    // invoked when selecting difficulty
+    private async Task OnSelectDifficultyAsync(GameEngineService.DifficultyLevel d)
+    {
+        SettingsService.Difficulty = d;
+
+        // persist immediately
+        await Persistence.SaveSettingsAsync(SettingsService.SelectedCharacterIndex, SettingsService.Difficulty);
+
+        StateHasChanged();
+    }
+
+    private async Task SaveAndBack()
+    {
+        await Persistence.SaveSettingsAsync(SettingsService.SelectedCharacterIndex, SettingsService.Difficulty);
+        Nav.NavigateTo("/");
+    }
+
+    private void Cancel()
+    {
+        Nav.NavigateTo("/");
+    }
+}

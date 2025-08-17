@@ -1,0 +1,190 @@
+﻿@page "/game"
+@inject IJSRuntime JS
+@inject GameSettingsService SettingsService
+@inject PersistenceService Persistence
+@inject LeaderboardService Leaderboard
+@inject NavigationManager Nav
+@using FlappyMiniApp.Client.Helpers
+@using FlappyMiniApp.Client.Services
+
+
+<div class="game-card card">
+  <div style="position:absolute; left:10px; top:10px; z-index:40;">
+    <button class="secondary-btn" @onclick="BackToMenu" aria-label="Back">Back</button>
+  </div>
+
+  <div style="position:absolute; right:10px; top:10px; z-index:40;">
+    <button class="secondary-btn" @onclick="TogglePause" aria-label="Pause">@((isPaused) ? "Resume" : "Pause")</button>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <div class="hud" style="top:12px;">@score</div>
+
+  <!-- difficulty badge under score -->
+  <div class="hud" style="top:52px; font-size:12px; padding:6px 10px;">
+    Difficulty: <strong>@(SettingsService.Difficulty.ToString())</strong>
+  </div>
+
+  <div id="touchArea" class="big-touch"></div>
+</div>
+
+@code {
+    private GameEngineService engine = default!;
+    private DotNetObjectReference<Game>? dotNetRef;
+    private int score = 0;
+    private double lastTimestamp = -1;
+    private bool isPaused = false;
+    private System.Text.Json.JsonSerializerOptions jsonOptions = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+
+    protected override async Task OnInitializedAsync()
+    {
+        engine = new GameEngineService(480, 800);
+
+        // Prefer in-memory settings, but ensure they are synced with persisted settings.
+        // If user changed settings and they were persisted, this keeps them in sync.
+        var (persistChar, persistDiff) = await Persistence.LoadSettingsAsync();
+
+        // If the in-memory SettingsService has default values that differ from persisted - sync both ways.
+        // We'll ensure SettingsService reflects persisted values (since Save occurs on selection).
+        SettingsService.SelectedCharacterIndex = persistChar;
+        SettingsService.Difficulty = persistDiff;
+
+        engine.SetCharacterIndex(SettingsService.SelectedCharacterIndex);
+        engine.SetDifficulty(SettingsService.Difficulty);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("flappy.initCanvas", "gameCanvas");
+
+            var images = new[]
+            {
+                "images/bird1.svg",
+                "images/bird2.svg",
+                "images/bird3.svg",
+                "images/pipe.svg",
+                "images/bg0.svg",
+                "images/bg1.svg",
+                "images/bg2.svg"
+            };
+            await JS.InvokeVoidAsync("flappy.loadImages", images);
+
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("flappy.attachTouchHandler", "touchArea", "OnTouched", dotNetRef);
+            await JS.InvokeVoidAsync("flappy.startLoop", dotNetRef);
+        }
+    }
+
+    [JSInvokable("OnTouched")]
+    public async Task OnTouched()
+    {
+        if (!engine.IsAlive)
+        {
+            await Leaderboard.SaveScoreLocalAsync(score);
+
+            var currentBest = await Persistence.GetBestAsync();
+            if (score > currentBest)
+            {
+                await Persistence.SaveBestAsync(score);
+                // unlock if needed
+                await CheckAndUnlockAsync(score);
+            }
+
+            engine.Reset();
+            engine.SetCharacterIndex(SettingsService.SelectedCharacterIndex);
+            engine.SetDifficulty(SettingsService.Difficulty);
+            score = 0;
+            lastTimestamp = -1;
+            isPaused = false;
+            StateHasChanged();
+            return;
+        }
+
+        if (engine.IsPaused)
+        {
+            engine.TogglePause();
+            isPaused = false;
+            return;
+        }
+
+        engine.Flap();
+        _ = JS.InvokeVoidAsync("flappy.playSound", "flap");
+    }
+
+    [JSInvokable]
+    public async Task FrameCallback(double timestamp)
+    {
+        if (lastTimestamp < 0) lastTimestamp = timestamp;
+        var dt = (timestamp - lastTimestamp) / 1000.0;
+        if (dt > 0.12) dt = 0.12;
+        lastTimestamp = timestamp;
+
+        engine.Update(dt);
+        var state = engine.GetRenderState();
+        score = state.Score;
+        isPaused = engine.IsPaused;
+
+        var currentBest = await Persistence.GetBestAsync();
+        if (score > currentBest)
+        {
+            await Persistence.SaveBestAsync(score);
+            await CheckAndUnlockAsync(score);
+        }
+
+        var json = System.Text.Json.JsonSerializer.Serialize(state, jsonOptions);
+        await JS.InvokeVoidAsync("flappy.drawFrame", json);
+
+        StateHasChanged();
+    }
+
+    private async Task CheckAndUnlockAsync(int bestScore)
+    {
+        for (int i = 0; i < Unlocks.Thresholds.Length; i++)
+        {
+            var thr = Unlocks.Thresholds[i];
+            if (thr > 0 && bestScore >= thr)
+            {
+                var unlocked = await Persistence.GetUnlockedCharsAsync();
+                if (!unlocked.Contains(i))
+                {
+                    await Persistence.UnlockCharAsync(i);
+                    // Optionally, show a small in-game toast or visual notification here.
+                }
+            }
+        }
+    }
+
+    private async Task BackToMenu()
+    {
+        await StopAndCleanup();
+        Nav.NavigateTo("/");
+    }
+
+    private void TogglePause()
+    {
+        engine.TogglePause();
+        isPaused = engine.IsPaused;
+    }
+
+    private async Task StopAndCleanup()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("flappy.stopLoop");
+        }
+        catch { }
+        if (dotNetRef != null)
+        {
+            dotNetRef.Dispose();
+            dotNetRef = null;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopAndCleanup();
+    }
+}

@@ -1,0 +1,47 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ test-deploy ]  # Активируется при push в main ветку
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Publish project
+      run: dotnet publish -c Release -o published --nologo
+
+
+    - name: Add 404 page
+      run: cp published/wwwroot/index.html published/wwwroot/404.html
+
+    - name: Add .nojekyll
+      run: touch published/wwwroot/.nojekyl
+      
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4.0.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: published/wwwroot
+        enable_jekyll: false  
+        keep_files: false     
+        force_orphan: true
