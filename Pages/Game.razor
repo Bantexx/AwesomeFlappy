@@ -160,7 +160,7 @@
     private async Task BackToMenu()
     {
         await StopAndCleanup();
-        Nav.NavigateTo("/");
+        Nav.NavigateTo(Nav.BaseUri);
     }
 
     private void TogglePause()

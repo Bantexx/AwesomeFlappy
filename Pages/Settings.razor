@@ -133,11 +133,9 @@
     private async Task SaveAndBack()
     {
         await Persistence.SaveSettingsAsync(SettingsService.SelectedCharacterIndex, SettingsService.Difficulty);
-        Nav.NavigateTo("/");
+        Nav.NavigateTo(Nav.BaseUri);
     }
 
-    private void Cancel()
-    {
-        Nav.NavigateTo("/");
-    }
+    private void Cancel() => Nav.NavigateTo(Nav.BaseUri);
+    
 }
