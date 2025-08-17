@@ -1,0 +1,154 @@
+:root{
+    --bg-1: #0b2e1a;       /* основной фон: темно-зелёный */
+    --bg-2: #0f3d25;       /* вторичный фон */
+    --card: #0f4d2e;       /* карточки */
+    --accent: #7be495;     /* яркий акцент (лайм) */
+    --muted: rgba(255,255,255,0.08);
+    --text: #E6F8EE;
+    --glass: rgba(255,255,255,0.03);
+    --shadow: 0 8px 20px rgba(0,0,0,0.35);
+    --max-width: 420px;
+    --radius: 12px;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* page background */
+html,body,#app {
+    height:100%;
+    margin:0;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+/* page shell container (MainLayout will center .app-container) */
+.app-container {
+    width:100%;
+    max-width:var(--max-width);
+    margin: 18px auto;
+    padding:12px;
+    box-sizing:border-box;
+}
+
+/* card for central content */
+.card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+}
+
+/* Menu styles */
+.menu-centered {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    text-align:center;
+}
+
+/* Title */
+.menu-title {
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.6px;
+    margin:6px 0 0 0;
+}
+
+/* preview (avatar) */
+.preview {
+    width:120px;
+    height:120px;
+    border-radius:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+/* Buttons: primary / secondary */
+.primary-btn {
+    appearance:none;
+    border: none;
+    background: linear-gradient(180deg, var(--accent), #4bcf73);
+    color: #06361f;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(11,46,26,0.48);
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .12s ease;
+}
+
+.primary-btn:active { transform: translateY(2px) scale(0.996); box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
+
+.secondary-btn {
+    appearance:none;
+    border: 1px solid var(--muted);
+    background: transparent;
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .12s ease, transform .08s ease;
+}
+
+.secondary-btn:hover { background: rgba(255,255,255,0.02); }
+.secondary-btn:active { transform: translateY(1px); }
+
+/* horizontal button group */
+.btn-row { display:flex; gap:10px; justify-content:center; align-items:center; }
+
+/* Game container: canvas should take full area of card */
+.game-card {
+    width:100%;
+    height: calc(100vh - 160px); /* adapt to layout; fine tune if needed */
+    min-height: 360px;
+    padding:0;
+    overflow:hidden;
+    position:relative;
+    border-radius: 12px;
+}
+
+/* canvas styling */
+canvas#gameCanvas {
+    width:100%;
+    height:100%;
+    display:block;
+    border-radius: 12px;
+}
+
+/* HUD (score) */
+.hud {
+    position:absolute;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    pointer-events:none;
+    background: rgba(0,0,0,0.2);
+    padding:6px 12px;
+    border-radius: 20px;
+    font-weight:700;
+    color:var(--text);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+}
+
+/* big touch overlay */
+.big-touch {
+    position:absolute;
+    left:0; right:0; top:0; bottom:0;
+    pointer-events:auto;
+}
+
+/* small utility */
+.center-note { font-size:12px; color: rgba(230,248,238,0.8); }
+
+/* responsive */
+@media (max-width: 420px) {
+    .app-container { margin: 10px; padding:8px; }
+    .preview { width:100px; height:100px; border-radius:14px; }
+    .game-card { height: calc(100vh - 140px); min-height: 300px; }
+}

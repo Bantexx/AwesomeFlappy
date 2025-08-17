@@ -1,0 +1,75 @@
+/* /Layout/MainLayout.razor.rz.scp.css */
+.app-shell[b-vdhdl4ojzr] {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(180deg,#6ec6ff 0%, #87CEEB 60%, #B3E5FC 100%);
+    color: #fff;
+    -webkit-font-smoothing:antialiased;
+}
+
+/* topbar уже был — оставляем прежние определения (см. ранее) */
+.topbar[b-vdhdl4ojzr] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: env(safe-area-inset-top, 12px) 12px 8px 12px;
+    height: 64px;
+    box-sizing: border-box;
+    backdrop-filter: blur(6px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* main-body: we center and constrain width here */
+.main-body[b-vdhdl4ojzr] {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center; /* центрируем контейнер горизонтально */
+    align-items: flex-start;
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* app-container задаёт максимальную ширину страницы на десктопе и мобильную максимальную ширину */
+.app-container[b-vdhdl4ojzr] {
+    width: 100%;
+    max-width: 420px; /* основное ограничение — под мобильные устройства */
+    min-height: calc(100vh - 64px - 64px); /* min height учтёт topbar + bottombar (приблизительно) */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 8px;
+}
+
+/* внутреннее поле контента */
+.content[b-vdhdl4ojzr] {
+    width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    padding: 10px;
+    box-sizing: border-box;
+    /* если игра занимает весь контент — пусть элемент растягивается */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* bottombar и иконки оставляем прежние определения */
+.bottombar[b-vdhdl4ojzr] {
+    padding: 10px 12px calc(env(safe-area-inset-bottom, 8px) + 10px);
+    text-align: center;
+    font-size: 13px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
+    border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+/* responsiveness for narrower screens — reduce padding and shadows */
+@media (max-width: 420px) {
+    .app-container[b-vdhdl4ojzr] { padding: 6px; }
+    .content[b-vdhdl4ojzr] { border-radius: 10px; padding: 8px; }
+}
